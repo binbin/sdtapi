@@ -8,5 +8,5 @@ import (
 func main() {
 	//输出内容
 	fmt.Println(sdk.ReadCard())
-	fmt.Println("xxx")
+	// fmt.Println("xxx")
 }

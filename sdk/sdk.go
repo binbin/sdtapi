@@ -7,15 +7,15 @@ package sdk
 
 import (
 	"bytes"
-	"encoding/base64"
+	// "encoding/base64"
 	"golang.org/x/text/encoding/simplifiedchinese"
-	"io/ioutil"
-	"os"
-	"os/exec"
-	"strings"
+	// "io/ioutil"
+	// "os"
+	// "os/exec"
+	// "strings"
 	"syscall"
 	"unsafe"
-	"fmt"
+	// "fmt"
 )
 
 var dll, err = syscall.LoadLibrary("Sdtapi.dll")
@@ -65,44 +65,44 @@ func CloseComm() uintptr {
 }
 
 //读身份证信息
-func ReadCard() []byte {
+func ReadCard() string {
 	var ret uintptr
 	if err != nil {
-		fmt.Println(`{"ret":0, "msg1":"` + err.Error() + `", "data": ""}`)
-		return []byte(`{"ret":0, "msg":"` + err.Error() + `", "data": ""}`)
+		// fmt.Println(`{"ret":0, "msg1":"` + err.Error() + `", "data": ""}`)
+		return (`{"code":500, "msg":"` + err.Error() + `", "data": ""}`)
 	}
 
 	ret = InitComm()
 	if ret != uintptr(1) {
-		fmt.Println(`{"ret":0, "msg2":"端口初始化失败", "data": ""}`)
-		return []byte(`{"ret":0, "msg":"端口初始化失败", "data": ""}`)
+		// fmt.Println(`{"ret":0, "msg2":"端口初始化失败", "data": ""}`)
+		return (`{"code":500, "msg":"端口初始化失败", "data": ""}`)
 	}
 
 	ret = Authenticate()
 	if ret != uintptr(1) {
-		fmt.Println(`{"ret":0, "msg3":"卡认证失败", "data": ""}`)
+		// fmt.Println(`{"ret":0, "msg3":"卡认证失败", "data": ""}`)
 		// return []byte(`{"ret":0, "msg":"卡认证失败", "data": ""}`)
 	}
 
 	ret = CardOn()
 	if ret != uintptr(1) {
-		fmt.Println(`{"ret":0, "msg4":"无身份证", "data": ""}`)
-		return []byte(`{"ret":0, "msg":"无身份证", "data": ""}`)
+		// fmt.Println(`{"ret":0, "msg4":"无身份证", "data": ""}`)
+		return (`{"code":404, "msg":"无身份证", "data": ""}`)
 	}
 
 	ret = ReadBaseInfos()
 	if ret == uintptr(0) {
-		fmt.Println(`{"ret":0, "msg5":"错误", "data": ""}`)
-		return []byte(`{"ret":0, "msg":"错误", "data": ""}`)
+		// fmt.Println(`{"ret":0, "msg5":"错误", "data": ""}`)
+		return (`{"code":502, "msg":"错误", "data": ""}`)
 	} else if -ret == uintptr(4) {
-		fmt.Println(`{"ret":0, "msg6":"缺少dll", "data": ""}`)
-		return []byte(`{"ret":0, "msg":"缺少dll", "data": ""}`)
+		// fmt.Println(`{"ret":0, "msg6":"缺少dll", "data": ""}`)
+		return (`{"code":501, "msg":"缺少dll", "data": ""}`)
 	}
 
 	ret = CloseComm()
 	if ret != uintptr(1) {
-		fmt.Println(`{"ret":0, "msg7":"端口关闭失败", "data": ""}`)
-		return []byte(`{"ret":0, "msg":"端口关闭失败", "data": ""}`)
+		// fmt.Println(`{"ret":0, "msg7":"端口关闭失败", "data": ""}`)
+		return (`{"code":503, "msg":"端口关闭失败", "data": ""}`)
 	}
 	//处理身份证信息
 	name := Conversion(Name)
@@ -113,11 +113,11 @@ func ReadCard() []byte {
 	address := Conversion(Address)
 	agency := Conversion(Agency)
 	expireStart := Conversion(ExpireStart)
-	eexpireEnd := Conversion(ExpireEnd)
-	photo := ImageBase64("photo.bmp")
-	data := []byte(`{"name":"` + string(name) + `","gender":"` + string(gender) + `","folk":"` + string(folk) + `","birthDay":"` + string(birthDay) + `","code":"` + string(code) + `","address":"` + string(address) + `","agency":"` + string(agency) + `","expireStart":"` + string(expireStart) + `","eexpireEnd":"` + string(eexpireEnd) + `","photo":"` + photo + `"}`)
-	fmt.Println(`{"ret":1, "msg8":"--ReadCard", "data": ` + string(data) + `}`)
-	return []byte(`{"ret":1, "msg":"--ReadCard", "data": ` + string(data) + `}`)
+	expireEnd := Conversion(ExpireEnd)
+	// photo := ImageBase64("photo.bmp")
+	data := (`{"name":"` + string(name) + `","gender":"` + string(gender) + `","folk":"` + string(folk) + `","birthDay":"` + string(birthDay) + `","code":"` + string(code) + `","address":"` + string(address) + `","agency":"` + string(agency) + `","expireStart":"` + string(expireStart) + `","expireEnd":"` + string(expireEnd) + `"`  + `}`)
+	// fmt.Println(`{"ret":1, "msg8":"--ReadCard", "data": ` + string(data) + `}`)
+	return (`{"code":200, "msg":"success", "data": ` + string(data) + `}`)
 }
 
 //gbk编码转utf-8编码并去掉\0
@@ -126,14 +126,14 @@ func Conversion(b []byte) []byte {
 	return bytes.Trim(ret, "\x00")
 }
 
-//图片转Base64
-func ImageBase64(path string) string {
-	//获取文件绝对路径
-	s, _ := exec.LookPath(os.Args[0])
-	i := strings.LastIndex(s, "\\")
-	filepath := string(s[0:i+1] + path)
+// //图片转Base64
+// func ImageBase64(path string) string {
+// 	//获取文件绝对路径
+// 	s, _ := exec.LookPath(os.Args[0])
+// 	i := strings.LastIndex(s, "\\")
+// 	filepath := string(s[0:i+1] + path)
 
-	image, _ := ioutil.ReadFile(filepath)
-	ImageBase64 := base64.StdEncoding.EncodeToString(image)
-	return "data:image/bmp;base64," + ImageBase64
-}
+// 	image, _ := ioutil.ReadFile(filepath)
+// 	ImageBase64 := base64.StdEncoding.EncodeToString(image)
+// 	return "data:image/bmp;base64," + ImageBase64
+// }
